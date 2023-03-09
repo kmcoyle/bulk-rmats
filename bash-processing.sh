@@ -32,12 +32,13 @@ for EVENT in ${events}
 do
     echo $EVENT
     file=${cpdir}/${EVENT}${file_pattern}
+
     echo $file.IJC
     ## Take IJC data & store in new file
-    cat $NEW_IDS_TSV  | perl -ne 's/\t/_IJC\t/g;print;' > $file.IJC
+    cat $NEW_IDS_TSV  | perl -ne 's/\t/_IJC\t/g;print;'| perl -ne 's/\t$//g;print;' > $file.IJC
     echo "" >> $file.IJC
     WC=$(wc -l $file | awk '{print $1}')
-    awk 'NR>1 {print $13}' $file | tr ',' '\t' >> $file.IJC 
+    awk 'BEGIN{FS="\t"} NR>1 {print $13}' $file | tr ',' '\t' >> $file.IJC 
     WC_IJC=$(wc -l $file.IJC | awk '{print $1}')
     if [ "$WC" -eq "$WC_IJC" ]; then
         echo "File is OK"
@@ -47,10 +48,10 @@ do
 
     ## Take SJC data & store in new file
     echo $file.SJC
-    cat $NEW_IDS_TSV  | perl -ne 's/\t/_SJC\t/g;print;' > $file.SJC
+    cat $NEW_IDS_TSV  | perl -ne 's/\t/_SJC\t/g;print;' | perl -ne 's/\t$//g;print;' > $file.SJC
     echo "" >> $file.SJC
     WC=$(wc -l $file | awk '{print $1}')
-    awk 'NR>1{print $14}' $file | tr ',' '\t' >> $file.SJC 
+    awk 'BEGIN{FS="\t"} NR>1 {print $14}' $file | tr ',' '\t' >> $file.SJC 
     WC_SJC=$(wc -l $file.SJC | awk '{print $1}')
     if [ "$WC" -eq "$WC_SJC" ]; then
         echo "File is OK"
@@ -60,10 +61,10 @@ do
 
     ## Take IncLevel data & store in new file
     echo $file.Inc
-    cat $NEW_IDS_TSV  | perl -ne 's/\t/_Inc\t/g;print;' > $file.Inc
+    cat $NEW_IDS_TSV  | perl -ne 's/\t/_Inc\t/g;print;' | perl -ne 's/\t$//g;print;' > $file.Inc
     echo "" >> $file.Inc
     WC=$(wc -l $file | awk '{print $1}')
-    awk 'NR>1{print $21}' $file | tr ',' '\t' >> $file.Inc 
+    awk 'BEGIN{FS="\t"} NR>1 {print $21}' $file | tr ',' '\t' >> $file.Inc 
     WC_INC=$(wc -l $file.Inc | awk '{print $1}')
     if [ "$WC" -eq "$WC_INC" ]; then
         echo "File is OK"
@@ -75,7 +76,7 @@ do
     echo $file.ID
     echo "Event" > $file.ID
     WC=$(wc -l $file | awk '{print $1}')
-    awk 'NR>1{print $EVENT_$2"_"$3"_"$4"_"$5"_"$6"_"$7"_"$8"_"$9"_"$10"_"$11}' $file >> $file.ID
+    awk -v e=$EVENT 'NR>1 {print e"_"$2"_"$3"_"$4"_"$5"_"$6"_"$7"_"$8"_"$9"_"$10"_"$11}' $file | perl -ne 's/\t$//g;print;' >> $file.ID
     WC_ID=$(wc -l $file.ID | awk '{print $1}')
     if [ "$WC" -eq "$WC_ID" ]; then
         echo "File is OK"
@@ -84,6 +85,6 @@ do
     fi
 
     ## Join all files together with paste
-    paste $file.ID $file.IJC $file.SJC $file.Inc > $cpdir/$EVENT.final.txt
-
+    paste $file.ID $file.IJC $file.SJC $file.Inc |  perl -ne 's/\t$//g;print;' > $cpdir/$EVENT.final.txt
+    
 done
